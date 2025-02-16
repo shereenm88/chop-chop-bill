@@ -80,10 +80,19 @@ const BillSplitter = () => {
   const handleShare = async () => {
     const amountPerPerson = calculateTotal().toFixed(2);
     const symbol = CURRENCIES[bill.currency].symbol;
+    const message = `💸 Bill Split Alert!\n\n` +
+      `Total Bill: ${symbol}${bill.total}\n` +
+      `Number of People: ${bill.people}\n` +
+      `Tax: ${bill.tax}%\n` +
+      `Tip: ${bill.tip}%\n` +
+      `${bill.serviceCharge ? `Service Charge: ${SERVICE_CHARGE_PERCENT}%\n` : ''}` +
+      `\nEach Person Pays: ${symbol}${amountPerPerson}\n\n` +
+      `Let's settle up! ✅`;
+
     try {
       await navigator.share({
         title: "Split Bill",
-        text: `Each person owes: ${symbol}${amountPerPerson}`,
+        text: message,
       });
     } catch (err) {
       handleCopy();
