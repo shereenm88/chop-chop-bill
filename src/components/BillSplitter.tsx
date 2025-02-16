@@ -18,6 +18,7 @@ interface Bill {
   tip: number;
   currency: string;
   serviceCharge: boolean;
+  serviceChargePercent: number;
   roundUp: boolean;
 }
 
@@ -32,8 +33,6 @@ const CURRENCIES = {
   JPY: { symbol: "¥", name: "Japanese Yen" },
 };
 
-const SERVICE_CHARGE_PERCENT = 10;
-
 const BillSplitter = () => {
   const [bill, setBill] = useState<Bill>({
     total: 0,
@@ -42,6 +41,7 @@ const BillSplitter = () => {
     tip: 0,
     currency: "USD",
     serviceCharge: false,
+    serviceChargePercent: 10,
     roundUp: false,
   });
 
@@ -56,14 +56,13 @@ const BillSplitter = () => {
     const subtotal = bill.total;
     const taxAmount = (subtotal * bill.tax) / 100;
     const tipAmount = (subtotal * bill.tip) / 100;
-    const serviceChargeAmount = bill.serviceCharge ? (subtotal * SERVICE_CHARGE_PERCENT) / 100 : 0;
+    const serviceChargeAmount = bill.serviceCharge ? (subtotal * bill.serviceChargePercent) / 100 : 0;
     let total = (subtotal + taxAmount + tipAmount + serviceChargeAmount) / bill.people;
     
     if (bill.roundUp) {
       total = Math.ceil(total);
     }
     
-    // Convert to selected currency
     return total * rates[bill.currency];
   };
 
@@ -85,7 +84,7 @@ const BillSplitter = () => {
       `Number of People: ${bill.people}\n` +
       `Tax: ${bill.tax}%\n` +
       `Tip: ${bill.tip}%\n` +
-      `${bill.serviceCharge ? `Service Charge: ${SERVICE_CHARGE_PERCENT}%\n` : ''}` +
+      `${bill.serviceCharge ? `Service Charge: ${bill.serviceChargePercent}%\n` : ''}` +
       `\nEach Person Pays: ${symbol}${amountPerPerson}\n\n` +
       `Let's settle up! ✅`;
 
@@ -227,16 +226,38 @@ const BillSplitter = () => {
             </div>
 
             <div className="space-y-4 pt-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">
-                  Service Charge ({SERVICE_CHARGE_PERCENT}%)
-                </label>
-                <Switch
-                  checked={bill.serviceCharge}
-                  onCheckedChange={(checked) =>
-                    setBill({ ...bill, serviceCharge: checked })
-                  }
-                />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">
+                    Service Charge
+                  </label>
+                  <Switch
+                    checked={bill.serviceCharge}
+                    onCheckedChange={(checked) =>
+                      setBill({ ...bill, serviceCharge: checked })
+                    }
+                  />
+                </div>
+                {bill.serviceCharge && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Percent className="w-4 h-4" />
+                      Service Charge (%)
+                    </label>
+                    <input
+                      type="number"
+                      value={bill.serviceChargePercent || ""}
+                      onChange={(e) =>
+                        setBill({
+                          ...bill,
+                          serviceChargePercent: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full p-3 text-center rounded-xl bg-white/50 border-2 border-primary/20 focus:border-primary/40 focus:outline-none transition-all input-reset"
+                      placeholder="0"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between">
